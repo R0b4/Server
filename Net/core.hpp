@@ -83,6 +83,16 @@ struct ConnectionHandler {
 
 	inline ConnectionHandler(const ConnectionFunctions *functions) : functions(functions) {}
 	inline ConnectionHandler() = default;
+
+	template<typename T>
+	inline T &get_data() const {
+		return *((T *)data);
+	}
+
+	template<typename T>
+	inline void get_data(T &p) const {
+		p = *((T *)data);
+	}
 };
 
 struct Connection {
