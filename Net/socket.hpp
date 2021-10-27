@@ -7,13 +7,13 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/epoll.h>
 #include <netdb.h>
 #include <fcntl.h>
 
-#include "sock_types.hpp"
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
-inline bool socket_blocked() { return errno == EAGAIN || errno == EWOULDBLOCK; }
+#include "sock_types.hpp"
 
 struct AdressInfo {
 	sockaddr peer_addr;
@@ -33,6 +33,7 @@ struct SocketFunctions {
 	sock_status (*accept_new)(Socket *self, Socket *out);
 	ssize_t (*read)(Socket *self, char *buffer, size_t buff_size);
 	ssize_t (*write)(Socket *self, const char *buffer, size_t buff_size);
+	bool (*isblocked)(Socket *self);
 	void (*erase)(Socket *self);
 
 	int (*get_fd)(const Socket *self);
@@ -71,6 +72,9 @@ struct Socket {
 	}
 	ssize_t write(const char *buffer, size_t buff_size){
 		return functions->write(this, buffer, buff_size);
+	}
+	bool isblocked() {
+		return functions->isblocked(this);
 	}
 	void erase() {
 		return functions->erase(this);
@@ -218,6 +222,14 @@ namespace StandardSocket
         return data.isListening;
 	}
 
+	bool isblocked(Socket *self) {
+		return errno == EAGAIN || errno == EWOULDBLOCK;
+	}
+
+	void erase(SocketFunctions &functions){
+
+	}
+
     SocketFunctions get(){
         SocketFunctions functions;
 
@@ -230,16 +242,13 @@ namespace StandardSocket
         functions.read = read;
         functions.write = write;
         functions.erase = erase;
+		functions.isblocked = isblocked;
         functions.get_fd = get_fd;
         functions.get_addr_info = get_addr_info;
         functions.is_listening = is_listening;
 
         return functions;
     }
-
-	void erase(SocketFunctions &functions){
-
-	}
 }
 
 namespace SSLSocket
@@ -256,9 +265,9 @@ namespace SSLSocket
 		SSLv23_server_method,
 		SSLv23_server_method,
 		TLS_server_method,
-		TLSv1_server_method,
-		TLSv1_1_server_method,
-		TLSv1_2_server_method
+		TLS_server_method,
+		TLS_server_method,
+		TLS_server_method
 	};
 
 	struct ConstSocketData {
@@ -270,6 +279,7 @@ namespace SSLSocket
         bool isListening;
 
 		SSL *ssl;
+		int last_ret;
 
         AdressInfo adress;
     };
@@ -356,9 +366,9 @@ namespace SSLSocket
 		out_data.sock_fd = accept(data.sock_fd, &out_data.adress.peer_addr, &out_data.adress.peer_addr_len);
 
 		out_data.ssl = SSL_new(const_data.ctx);
-        SSL_set_fd(out_data.ssl, client);
+        out_data.last_ret = SSL_set_fd(out_data.ssl, client);
 
-		if (SSL_accept(out_data.ssl) < 0) return sock_accept_failed;
+		if ((out_data.last_ret = SSL_accept(out_data.ssl)) < 0) return sock_accept_failed;
 
 		if (out_data.sock_fd == -1) return sock_accept_failed;
 		return sock_ok;
@@ -366,12 +376,21 @@ namespace SSLSocket
 
 	ssize_t read(Socket *self, char *buffer, size_t buff_size) {
         SocketData &data = self->get_data<SocketData>();
-		return SSL_read(data.ssl, buffer, buff_size);
+		data.last_ret = SSL_read(data.ssl, buffer, buff_size);
+
+		if (data.last_ret < 0) {
+			int err = SSL_get_error(data.ssl, data.last_ret);
+
+			if (err == SSL_ERROR_ZERO_RETURN) return 0;
+			else return -1;
+		}
+
+		return data.last_ret;
 	}
 
 	ssize_t write(Socket *self, const char *buffer, size_t buff_size) {
         SocketData &data = self->get_data<SocketData>();
-		return SSL_write(data.ssl, buffer, buff_size);
+		return data.last_ret = SSL_write(data.ssl, buffer, buff_size);
 	}
 
 	void erase(Socket *self){
@@ -396,11 +415,6 @@ namespace SSLSocket
 	bool is_listening(const Socket *self) {
 		const SocketData &data = self->get_data<SocketData>();
         return data.isListening;
-	}
-
-	void init() {
-		SSL_load_error_strings();	
-		OpenSSL_add_ssl_algorithms();
 	}
 
 	SSL_CTX *create_context(ssl_version version) {
@@ -433,6 +447,23 @@ namespace SSLSocket
 		}
 	}
 
+	bool isblocked(Socket *self) {
+		const SocketData &data = self->get_data<SocketData>();
+		
+		int err = SSL_get_error(data.ssl, data.last_ret);
+
+		if (err == SSL_ERROR_ZERO_RETURN || err == SSL_ERROR_NONE ||
+			err == SSL_ERROR_SYSCALL || err == SSL_ERROR_SSL) return false;
+		
+		return true;
+	}
+
+	void erase(SocketFunctions &functions) {
+		ConstSocketData *data = (ConstSocketData *)functions.sock_constants;
+		SSL_CTX_free(data->ctx);
+		delete data;
+	}
+
     SocketFunctions get(ssl_version version, const char *cert_location, const char *private_key_location){
         SocketFunctions functions;
 
@@ -452,6 +483,7 @@ namespace SSLSocket
         functions.read = read;
         functions.write = write;
         functions.erase = erase;
+		functions.isblocked = isblocked;
         functions.get_fd = get_fd;
         functions.get_addr_info = get_addr_info;
         functions.is_listening = is_listening;
@@ -459,10 +491,9 @@ namespace SSLSocket
         return functions;
     }
 
-	void erase(SocketFunctions &functions) {
-		ConstSocketData *data = (ConstSocketData *)functions.sock_constants;
-		SSL_CTX_free(data->ctx);
-		delete data;
+	void init() {
+		SSL_load_error_strings();	
+		OpenSSL_add_ssl_algorithms();
 	}
 
 	void erase_all() {

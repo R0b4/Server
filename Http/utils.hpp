@@ -6,6 +6,13 @@
 #include <assert.h>
 #include <ctype.h>
 
+
+size_t get_digits(size_t n) {
+    size_t digits = 1;
+    for (; n /= 10; digits++);
+    return digits;
+}
+
 struct string_pos {
     size_t start;
     size_t size;
@@ -26,6 +33,8 @@ struct string_view {
     const char *str;
     size_t size;
 
+    string_view() = default;
+    constexpr string_view(const char *str) : str(str), size(strlen(str)) {}
     constexpr string_view(const char *str, size_t size) : str(str), size(size) {}
     constexpr string_view(string_pos view, const char *str) : str(str + view.start), size(view.size) {}
 
@@ -43,6 +52,14 @@ struct string_view {
     inline string_view &operator+=(size_t n) {
         *this = *this + n;
         return *this;
+    }
+
+    inline void print(FILE *f = stdout) const {
+        fwrite(str, sizeof(char), size, f);
+    }
+
+    inline char *cpy(char *dest) const {
+        return size + (char *)memcpy(dest, str, size); 
     }
 
     bool get_num(size_t num) {
@@ -92,7 +109,7 @@ struct cmp_str_case_insensitive
 
 bool str_find(const string_view &str, const string_view &delimiter, size_t &pos) {
     if (str.size < delimiter.size) return false;
-    for (size_t i = 0; i < str.size - delimiter.size; i++) {
+    for (size_t i = 0; i <= str.size - delimiter.size; i++) {
         if (!memcmp(str[i], delimiter[0], delimiter.size)) {
             pos = i;
             return true;

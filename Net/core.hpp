@@ -11,13 +11,11 @@
 #include <netdb.h>
 #include <fcntl.h>
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-
 #include <queue>
 #include <unordered_map>
 
 #include "socket.hpp"
+#include "epoll.hpp"
 #include "sock_types.hpp"
 
 /*
@@ -33,7 +31,7 @@ struct NetAction {
 
 	union {
 		struct {
-			char *buffer;
+			const char *buffer;
 			size_t size;
 			size_t progress;
 		};
@@ -47,7 +45,7 @@ struct NetAction {
 		action = a_close;
 	}
 
-	void set_send(char *buffer, size_t size) {
+	void set_send(const char *buffer, size_t size) {
 		action = a_send;
 		this->buffer =  buffer;
 		this->size = size;
@@ -65,6 +63,8 @@ struct ConnectionSet;
 struct ConnectionHandler;
 
 struct ConnectionFunctions {
+	void *handle_constants;
+
 	void (*init)(ConnectionSet *all, ConnectionHandler *self);
 	size_t (*get_receive_buffer)(ConnectionHandler *self, char **buffer);
 	void (*on_receive)(ConnectionHandler *self, size_t received);
@@ -93,6 +93,11 @@ struct ConnectionHandler {
 	inline void get_data(T &p) const {
 		p = *((T *)data);
 	}
+
+	template<typename T>
+    inline T &get_const_data() const {
+        return *((T *)functions->handle_constants);
+    }
 };
 
 struct Connection {
@@ -124,7 +129,7 @@ struct Connection {
 			if (action.action == a_send) {
 				ssize_t sent = socket.write(action.buffer + action.progress, action.size - action.progress);
 
-				if (sent == -1) return !socket_blocked();
+				if (sent == -1) return !socket.isblocked();
 				
 				action.progress += sent;
 				if (action.progress == action.size) pending.pop();
@@ -151,87 +156,6 @@ void ConnectionHandler::register_action(const NetAction &action) {
 inline const AdressInfo &ConnectionHandler::get_adress_info() {
 	return parent->socket.get_addr_info();
 }
-
-struct Epoll {
-	struct EpollEvent {
-	private:
-		epoll_event *ev;
-
-	public:
-		constexpr EpollEvent(epoll_event &ev) : ev(&ev) {}
-
-		inline bool read() const {
-			return ev->events & EPOLLIN;
-		}
-
-		inline bool write() const {
-			return ev->events & EPOLLOUT;
-		}
-
-		inline int operator()() const {
-			return ev->data.fd;
-		}
-
-		inline EpollEvent &operator=(EpollEvent other){
-			ev = other.ev;
-			return *this;
-		}
-	};
-
-	int epoll_fd;
-	epoll_event *event_list;
-	int event_list_size;
-
-	EpollEvent *simple_list;
-
-	void init(int event_list_size){
-		epoll_fd = epoll_create1(0);
-		event_list = (epoll_event *)malloc(sizeof(epoll_event) * event_list_size);
-		simple_list = (EpollEvent *)malloc(sizeof(EpollEvent) * event_list_size);
-		for (int i = 0; i < event_list_size; i++) {
-			epoll_event &ev = event_list[i];
-			simple_list[i] = EpollEvent(ev);
-		}
-		this->event_list_size = event_list_size;
-	}
-
-	void add(int fd, int events) {
-		epoll_event ev;
-		ev.data.fd = fd;
-		ev.events = events;
-
-		epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &ev);
-	}
-
-	void mod(int fd, int events) {
-		epoll_event ev;
-		ev.data.fd = fd;
-		ev.events = events;
-
-		epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev);
-	}
-	
-	inline void remove(int fd) {
-		epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
-	}
-
-	inline int await() {
-		return epoll_wait(epoll_fd, event_list, event_list_size, -1);
-	}
-
-	inline void erase(){
-		close(epoll_fd);
-		free(event_list);
-	}
-
-	inline int operator()(){
-		return epoll_fd;
-	}
-
-	inline const EpollEvent &operator[](int index) {
-		return simple_list[index];
-	}
-};
 
 struct ConnectionSet {
 	std::unordered_map<int, Connection *> connections;
@@ -289,6 +213,7 @@ struct ConnectionSet {
 	}
 
 	sock_status handle() {
+		int aaaa = 2;
 		int event_count = epoll.await();
 		if (event_count == -1) {
 			return epoll_failed;
@@ -321,10 +246,13 @@ struct ConnectionSet {
 				size_t max_size = conn_i->handler.functions->get_receive_buffer(&conn_i->handler, &buffer);
 				ssize_t received = conn_i->socket.read(buffer, max_size);
 
-				if (received == 0) close_connection(conn_i);
+				if (received <= 0) close_connection(conn_i);
 				else {
 					conn_i->handler.functions->on_receive(&conn_i->handler, received);
 					set_write(conn_i);
+
+					if (conn_i->run_pending_actions()) close_connection(conn_i);
+					else if (!conn_i->issending) epoll.mod(conn_i->socket(), EPOLLIN);
 				}
 			}
 

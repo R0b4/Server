@@ -1,8 +1,9 @@
-#include <vector>
+#ifndef INCLUDE_HTTP_TYPES
+#define INCLUDE_HTTP_TYPES
+
 #include "utils.hpp"
 
 #include <map>
-
 
 enum request_t {
     rother = 0, rget, rpost, rput, rhead, rdelete, rtrace, roptions, rconnect, rpatch
@@ -28,12 +29,13 @@ enum standard_header {
 };
 
 namespace HttpChars {
-    constexpr string_view colon_space(":", 1);
+    constexpr string_view colon_space(": ", 2);
+    constexpr string_view colon(":", 1);
     constexpr string_view crlf("\r\n", 2);
     constexpr string_view space(" ", 1);
 }
 
-std::map<const string_view, const standard_header, cmp_str> str_to_header_t = {
+std::map<const string_view, const standard_header, cmp_str_case_insensitive> str_to_header_t = {
     {string_view("Accept", 6), haccept},
     {string_view("Accept-Encoding", 15), hacceptenc},
     {string_view("Accept-Charset", 14), hacceptcharset},
@@ -47,7 +49,7 @@ std::map<const string_view, const standard_header, cmp_str> str_to_header_t = {
     {string_view("Host", 4), hhost}
 };
 
-std::map<const standard_header, const string_view, cmp_str> header_to_str = {
+std::map<const standard_header, const string_view> header_to_str = {
     {haccept, string_view("Accept", 6)},
     {hacceptenc, string_view("Accept-Encoding", 15)},
     {hacceptcharset, string_view("Accept-Charset", 14)},
@@ -79,34 +81,17 @@ std::map<const string_view, const httpversion, cmp_str> str_to_httpversion = {
     {string_view("HTTP/2", 6), http2}
 };
 
-std::map<const httpversion, const string_view, cmp_str> httpversion_to_str = {
+std::map<const httpversion, const string_view> httpversion_to_str = {
     {http10, string_view("HTTP/1.0", 8)},
     {http11, string_view("HTTP/1.1", 8)},
     {http2, string_view("HTTP/2", 6)}
 };
 
-struct HttpHeader {
-    standard_header type;
-    string_pos name;
-    string_pos value;
-};
+template<typename Key, typename T, typename cmp>
+T get_from_map(std::map<Key, T, cmp> &map, Key &k, T &notfound) {
+    if (map.count(k)) return map[k];
 
-enum progress_t {
-    none, top, headers, all
-};
+    return notfound;
+}
 
-struct HttpRequest {
-    request_t type;
-    httpversion version;
-    string_pos path;
-
-    std::vector<HttpHeader> fields;
-
-    size_t content_length;
-    size_t written;
-    string_pos body;
-
-    progress_t progress;
-
-    inline HttpRequest() : written(0), progress(none) {}
-};
+#endif
