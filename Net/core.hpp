@@ -17,6 +17,7 @@
 #include "socket.hpp"
 #include "epoll.hpp"
 #include "sock_types.hpp"
+#include "../utils.hpp"
 
 /*
 sources:
@@ -26,38 +27,6 @@ sources:
     https://wiki.openssl.org/index.php/Simple_TLS_Server
 */
 
-struct NetAction {
-	net_action_t action;
-
-	union {
-		struct {
-			const char *buffer;
-			size_t size;
-			size_t progress;
-		};
-
-		int ping_data;
-	};
-
-	NetAction() : action(a_none), buffer(nullptr) {}
-
-	void set_close() {
-		action = a_close;
-	}
-
-	void set_send(const char *buffer, size_t size) {
-		action = a_send;
-		this->buffer =  buffer;
-		this->size = size;
-		this->progress = 0;
-	}
-
-	void set_ping(int ping_data) {
-		action = a_ping;
-		this->ping_data = ping_data;
-	}
-};
-
 struct Connection;
 struct ConnectionSet;
 struct ConnectionHandler;
@@ -65,24 +34,26 @@ struct ConnectionHandler;
 struct ConnectionFunctions {
 	void *handle_constants;
 
-	void (*init)(ConnectionSet *all, ConnectionHandler *self);
-	size_t (*get_receive_buffer)(ConnectionHandler *self, char **buffer);
-	void (*on_receive)(ConnectionHandler *self, size_t received);
-	void (*on_ping)(ConnectionHandler *self, int ping_data);
-	void (*close)(ConnectionHandler *self);
+	void (*init)(ConnectionSet &all, ConnectionHandler &self);
+	size_t (*get_receive_buffer)(ConnectionHandler &self, char **buffer);
+	void (*on_receive)(ConnectionHandler &self, size_t received);
+	void (*on_sent)(ConnectionHandler &self);
+	void (*close)(ConnectionHandler &self);
 };
 
 struct ConnectionHandler {
 	Connection *parent;
 	void *data;
 
-	void register_action(const NetAction &action);
-	inline const AdressInfo &get_adress_info();
-
 	const ConnectionFunctions *functions;
 
 	inline ConnectionHandler(const ConnectionFunctions *functions) : functions(functions) {}
 	inline ConnectionHandler() = default;
+
+	void add_sent(string_view str);
+	void add_close();
+
+	inline const AdressInfo &get_adress_info();
 
 	template<typename T>
 	inline T &get_data() const {
@@ -107,14 +78,16 @@ struct Connection {
 	bool issending;
 	bool setsending;
 
-	std::queue<NetAction> pending;
+	bool isclosing;
+	size_t progress;
+	std::queue<string_view> pending;
 
-	inline Connection(const SocketFunctions *functions) : issending(false), setsending(false), socket(functions) {}
-	Connection(const ConnectionHandler &other, const SocketFunctions *functions) : issending(false), setsending(false), socket(functions) {
+	inline Connection(const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {}
+	Connection(const ConnectionHandler &other, const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {
 		handler = other;
 		handler.parent = this;
 	}
-	Connection(const Connection &other) : issending(false), setsending(false), socket(other.socket.functions) {
+	Connection(const Connection &other) : issending(false), setsending(false), socket(other.socket.functions), progress(0), isclosing(false) {
 		handler = other.handler;
 		handler.parent = this;
 	}
@@ -122,35 +95,40 @@ struct Connection {
 	bool run_pending_actions(){
 		issending = true;
 
-		for (; !pending.empty();) {
-			NetAction action = pending.front();
-
-			
-			if (action.action == a_send) {
-				ssize_t sent = socket.write(action.buffer + action.progress, action.size - action.progress);
-
-				if (sent == -1) return !socket.isblocked();
-				
-				action.progress += sent;
-				if (action.progress == action.size) pending.pop();
-			} else  if (action.action == a_close) {
-				return true;
-			} else if (action.action == a_ping) {
-				pending.pop();
-				handler.functions->on_ping(&handler, action.ping_data);
+		if (pending.empty()) {
+			if (isclosing) return true;
+			else {
+				handler.functions->on_sent(handler);
+				issending = !pending.empty();
+				if (!issending) return false; 
 			}
 		}
 
-		issending = false;
+		string_view front = pending.front() + progress;
+		ssize_t sent = socket.write(front.str, front.size);
+
+		if (sent == -1) {
+			printf("connection blocked.\n");
+			return !socket.isblocked();
+		}
+		
+		if (sent == front.size) {
+			progress = 0;
+			pending.pop();
+		} else {
+			progress += sent;
+		}
+
 		return false;
 	}
 };
 
-void ConnectionHandler::register_action(const NetAction &action) {
-	parent->pending.push(action);
-	if (action.action == a_send) {
-		parent->setsending = true;
-	}
+void ConnectionHandler::add_sent(string_view str) {
+	parent->pending.push(str);
+	parent->setsending = true;
+}
+void ConnectionHandler::add_close() {
+	parent->isclosing = true;
 }
 
 inline const AdressInfo &ConnectionHandler::get_adress_info() {
@@ -176,7 +154,7 @@ struct ConnectionSet {
 		Socket &socket = conn->socket;
 		epoll.remove(socket());
 		socket.erase();
-		conn->handler.functions->close(&conn->handler);
+		conn->handler.functions->close(conn->handler);
 		delete connections[socket()];
 		connections.erase(socket());
 	}
@@ -232,7 +210,7 @@ struct ConnectionSet {
 				}
 
 				new_conn->socket.make_non_blocking();
-				new_conn->handler.functions->init(this, &new_conn->handler);
+				new_conn->handler.functions->init(*this, new_conn->handler);
 
 				add_connection(new_conn);
 				set_write(new_conn);
@@ -243,12 +221,12 @@ struct ConnectionSet {
 			if (epoll[i].read()) {
 				char *buffer;
 
-				size_t max_size = conn_i->handler.functions->get_receive_buffer(&conn_i->handler, &buffer);
+				size_t max_size = conn_i->handler.functions->get_receive_buffer(conn_i->handler, &buffer);
 				ssize_t received = conn_i->socket.read(buffer, max_size);
 
 				if (received <= 0) close_connection(conn_i);
 				else {
-					conn_i->handler.functions->on_receive(&conn_i->handler, received);
+					conn_i->handler.functions->on_receive(conn_i->handler, received);
 					set_write(conn_i);
 
 					if (conn_i->run_pending_actions()) close_connection(conn_i);
@@ -256,7 +234,7 @@ struct ConnectionSet {
 				}
 			}
 
-			if (epoll[i].write()) {
+			else if (epoll[i].write()) {
 				if (conn_i->run_pending_actions()) close_connection(conn_i);
 				else if (!conn_i->issending) epoll.mod(conn_i->socket(), EPOLLIN);
 			}

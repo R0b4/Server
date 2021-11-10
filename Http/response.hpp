@@ -1,7 +1,7 @@
 #ifndef INCLUDE_HTTP_RESPONSE
 #define INCLUDE_HTTP_RESPONSE
 
-#include "utils.hpp"
+#include "../utils.hpp"
 #include "tables.hpp"
 #include <math.h>
 #include "../Net/core.hpp"
@@ -33,6 +33,7 @@ struct HttpResponseHeader {
 
 struct HttpResponse {
 private:
+    int id;
     bool not_sent_headers;
     char *buffer;
     size_t buff_size;
@@ -64,7 +65,13 @@ public:
 
     std::vector<void *> to_free;
 
-    inline HttpResponse() : send_file(false), not_sent_headers(true) {}
+    inline HttpResponse() : send_file(false), not_sent_headers(true), id(rand()) {}
+
+    template<typename T>
+    inline T *add_to_free(T *str) {
+        to_free.push_back(str);
+        return str;
+    }
 
     inline void add_header(HttpResponseHeader header) {
         headers.push_back(header);
@@ -86,8 +93,10 @@ public:
         if (add_content_len_header) {
             char *n_str;
             add_header(HttpResponseHeader::make_content_length(file_size, n_str));
-            to_free.push_back(n_str);
+            add_to_free(n_str);
         }
+
+        return true;
     }
 
     bool set_send_buffer(string_view buffer) {
@@ -126,18 +135,14 @@ public:
     }
 
     void add_send_and_ping(ConnectionHandler *handler, const char *str, size_t size, int ping) {
-        NetAction action;
-        action.set_send(str, size);
-        handler->register_action(action);
-
-        action.set_ping(ping);
-        handler->register_action(action);
+        handler->add_sent(string_view(str, size));
     }
 
     bool handle_send(ConnectionHandler *handler) {
         if (not_sent_headers) {
             buff_size = get_header_size();
             buffer = (char *)malloc(buff_size + 10);
+            add_to_free(buffer);
             memset(buffer, 'A', buff_size);
             serialize_headers(buffer);
 
@@ -145,14 +150,18 @@ public:
 
             not_sent_headers = false;
         } else if (send_file) {
-            //TODO
             if (sent == file_size) return true;
 
             if (buff_size != chunk_size) {
-                free(buffer);
                 buffer = (char *)malloc(chunk_size);
+                add_to_free(buffer);
                 buff_size = chunk_size;
             }
+
+            int read = fread(buffer, 1, buff_size, file);
+            sent += read;
+
+            printf("response %i: sent %lu/%lu (%f%%)\n", id, sent, file_size, (float)sent * 100.0f / (float)file_size);
 
             add_send_and_ping(handler, buffer, buff_size, 0);
         } else {
