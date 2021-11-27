@@ -19,6 +19,10 @@
 #include "sock_types.hpp"
 #include "../utils.hpp"
 
+#include "../alloc.hpp"
+
+#include <set>
+
 /*
 sources:
 	https://stackoverflow.com/questions/12982385/memory-handling-with-struct-epoll-event
@@ -82,14 +86,43 @@ struct Connection {
 	size_t progress;
 	std::queue<string_view> pending;
 
-	inline Connection(const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {}
+	clock_t on_last_event;
+
+	bool test_timeout(){
+		clock_t now = clock();
+		clock_t diff;
+		if (now < on_last_event) {
+			diff = on_last_event - now;
+		} else {
+			diff = now - on_last_event;
+		}
+
+		return diff > (3 * CLOCKS_PER_SEC);
+	}
+
+	void set_timeout(){
+		on_last_event = clock();
+	}
+
+	inline Connection(const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {
+		//pending.init();
+		set_timeout();
+	}
 	Connection(const ConnectionHandler &other, const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {
+		//pending.init();
+		set_timeout();
 		handler = other;
 		handler.parent = this;
 	}
 	Connection(const Connection &other) : issending(false), setsending(false), socket(other.socket.functions), progress(0), isclosing(false) {
+		//pending.init();
+		set_timeout();
 		handler = other.handler;
 		handler.parent = this;
+	}
+
+	~Connection() {
+		//pending.erase();
 	}
 
 	bool run_pending_actions(){
@@ -150,13 +183,14 @@ struct ConnectionSet {
 		epoll.add(c->socket(), EPOLLIN);
 	}
 
-	void close_connection(Connection *conn) {
+	void close_connection(Connection *conn) {		
+		int fd = conn->socket();
 		Socket &socket = conn->socket;
-		epoll.remove(socket());
+		epoll.remove(fd);
 		socket.erase();
 		conn->handler.functions->close(conn->handler);
-		delete connections[socket()];
-		connections.erase(socket());
+		delete connections[fd];
+		connections.erase(fd);
 	}
 
 	sock_status start_listener(const char *port, int max_backlog, ConnectionFunctions *handler, SocketFunctions *socket) {
@@ -191,7 +225,14 @@ struct ConnectionSet {
 	}
 
 	sock_status handle() {
-		int aaaa = 2;
+		for (auto &conn : connections) {
+			if (conn.second->socket.is_listening()) continue;
+
+			if (conn.second->test_timeout()){
+				close_connection(conn.second);
+			}
+		}
+
 		int event_count = epoll.await();
 		if (event_count == -1) {
 			return epoll_failed;
@@ -199,6 +240,7 @@ struct ConnectionSet {
 
 		for (int i = 0; i < event_count; i++) {
 			Connection *conn_i = connections[epoll[i]()]; 
+			conn_i->set_timeout();
 
 			if (conn_i->socket.is_listening()) {
 				if (connections.size() == max_connections) continue;

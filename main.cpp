@@ -13,6 +13,7 @@ void HandleRequest(HttpResponse &response, const HttpHandler::HttpData &data, co
 
     if (!response.set_send_file(response.add_to_free(string_view(request.path + 1, data.buffer).make_c_str()), 1000000, true)) {
         response.add_header(HttpResponseHeader::make_content_length(body.size, str));
+        response.add_to_free(str);
         response.set_send_buffer(body);
     }
 }
@@ -25,5 +26,8 @@ int main(){
 
     connections.start_listener("1234", 30, &funcs, &sock_funcs);
 
-    for (;;) connections.handle();
+    for (int i = 0; i < 1000000; i++) { 
+        printf("%i\n", i);
+        connections.handle();
+    }
 }

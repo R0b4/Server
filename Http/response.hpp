@@ -161,8 +161,6 @@ public:
             int read = fread(buffer, 1, buff_size, file);
             sent += read;
 
-            printf("response %i: sent %lu/%lu (%f%%)\n", id, sent, file_size, (float)sent * 100.0f / (float)file_size);
-
             add_send_and_ping(handler, buffer, buff_size, 0);
         } else {
             if (sent_body) return true;
@@ -175,9 +173,11 @@ public:
     }
 
     void erase() {
+        //printf("called free\n");
         for (void *p : to_free) {
             free(p);
         }
+        if (send_file) fclose(file);
     }
 };
 

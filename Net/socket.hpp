@@ -14,6 +14,7 @@
 #include <openssl/err.h>
 
 #include "sock_types.hpp"
+#include "../alloc.hpp"
 
 struct AdressInfo {
 	sockaddr peer_addr;
@@ -51,9 +52,9 @@ struct Socket {
 		functions->construct(this);
 	}
 
-    ~Socket() {
-        functions->deconstruct(this);
-    }
+	~Socket() {
+		functions->deconstruct(this);
+	}
 
 	sock_status bind_new_socket(const char *port) {
 		return functions->bind_new_socket(this, port);
@@ -78,6 +79,9 @@ struct Socket {
 	}
 	void erase() {
 		return functions->erase(this);
+	}
+	void deconstruct() {
+		return functions->deconstruct(this);
 	}
 
 	inline int operator()() const {
@@ -118,7 +122,7 @@ namespace StandardSocket
 
     void deconstruct(Socket *self) {
         SocketData &data = self->get_data<SocketData>();
-        delete &data;
+        free(&data);
     }
 
     sock_status bind_new_socket(Socket *self, const char *port) {
@@ -148,11 +152,13 @@ namespace StandardSocket
 
 			if (setsockopt(data.sock_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) == -1) {
 				self->erase();
+				freeaddrinfo(res);
 				return sock_setsockopt_failed;
 	        }
 
 			if (bind(data.sock_fd, i->ai_addr, i->ai_addrlen) == -1) {
 				self->erase();
+				freeaddrinfo(res);
 				continue;
 			}
 
@@ -224,10 +230,6 @@ namespace StandardSocket
 
 	bool isblocked(Socket *self) {
 		return errno == EAGAIN || errno == EWOULDBLOCK;
-	}
-
-	void erase(SocketFunctions &functions){
-
 	}
 
     SocketFunctions get(){

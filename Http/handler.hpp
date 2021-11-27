@@ -4,6 +4,7 @@
 #include "../Net/core.hpp"
 #include "tables.hpp"
 #include "../utils.hpp"
+#include "../alloc.hpp"
 #include "request.hpp"
 #include "response.hpp"
 
@@ -38,13 +39,17 @@ namespace HttpHandler {
         HttpData *data = new HttpData;
         data->buffer = (char *)malloc(HTTP_BUFFER_SIZE);
         data->size = HTTP_BUFFER_SIZE;
+        //data->pending_responses.init();
         self.data = data;
     }
 
     void reallocate(HttpData &data){
-        char *newbuffer = (char *)realloc(data.buffer, (data.size *= 2));
+        //data.buffer = (char *)realloc(data.buffer, (data.size *= 2));
+        void *newbuffer = malloc(data.size * 2);
+        memcpy(newbuffer, data.buffer, data.size);
         free(data.buffer);
-        data.buffer = newbuffer;
+        data.buffer = (char *)newbuffer;
+        data.size *= 2;
     }
 
     size_t get_receive_buffer(ConnectionHandler &self, char **buffer) {
@@ -130,6 +135,7 @@ namespace HttpHandler {
         for (;;) {
             string_pos to_parse(data.parsed, data.written - data.parsed);
             ssize_t parsed = 0;
+            int klklkl = 1;
 
             if (request.progress == none) {
                 if ((parsed = parse_top(data.buffer, to_parse, request)) == -1) return;
@@ -146,13 +152,14 @@ namespace HttpHandler {
                 request.body = string_pos(to_parse.start, request.content_length);
                 request.progress = all;
             } else {
-                data.pending_responses.push(HttpResponse());
-                HttpResponse &res = data.pending_responses.front();
+                HttpResponse res;
                 get_response(res, data, request, &self);
+                data.pending_responses.push(res);
 
                 if (data.pending_responses.size() == 1) {
-                    if (res.handle_send(&self)) {
-                        res.erase();
+                    HttpResponse &resin = data.pending_responses.front();
+                    if (resin.handle_send(&self)) {
+                        resin.erase();
                         data.pending_responses.pop();
                     }
                 }
@@ -182,6 +189,14 @@ namespace HttpHandler {
     void close(ConnectionHandler &self) {
         HttpData &data = self.get_data<HttpData>();
         free(data.buffer);
+
+        for (; !data.pending_responses.empty();) {
+            data.pending_responses.front().erase();
+            data.pending_responses.pop();
+        }
+
+        //data.pending_responses.erase();
+        delete &data;
     }
 
     template<void (*get_response)(HttpResponse &response, const HttpHandler::HttpData &data, const HttpRequest &request, const ConnectionHandler *self)>

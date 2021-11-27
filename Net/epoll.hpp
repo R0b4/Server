@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/epoll.h>
+#include "../alloc.hpp"
 
 struct Epoll {
 	struct EpollEvent {
@@ -72,6 +73,7 @@ struct Epoll {
 	inline void erase(){
 		close(epoll_fd);
 		free(event_list);
+		free(simple_list);
 	}
 
 	inline int operator()(){
