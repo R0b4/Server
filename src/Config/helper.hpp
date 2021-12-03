@@ -1,15 +1,6 @@
-constexpr int amount_config_commands = 9;
-enum config_t : int {
-    cchunksize = 0, cinitbuffsize, creallocthres, cmaxconn, 
-    cport, cbacklog, cusessl, csslport, csslbacklog
-};
+#include <map>
+#include "../utils.hpp"
+#include "options.hpp"
 
-std::map<config_t, string_view> config_commands = {
-    {cchunksize, string_view("Send chunk size")}, 
-    {cinitbuffsize, string_view("initial buffer size")}, 
-    {creallocthres}
-};
 
-void run_config_helper() {
-
-}
+void run_config_helper(const char *path_to_opts, options &opt);

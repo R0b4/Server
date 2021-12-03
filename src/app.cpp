@@ -3,11 +3,11 @@
 #include "Http/handler.hpp"
 #include "Config/options.hpp"
 #include "Config/pages.hpp"
+#include "Config/helper.hpp"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
 
 options server_options;
 const char *root_folder;
@@ -134,7 +134,7 @@ int create_website_dir() {
 }
 
 int main(int argc, char **argv){
-    printf("here\n");
+    run_config_helper("", server_options);
     if (argc > 1) {
         auto it = commands.find(string_view(argv[1]));
         if (it == commands.end() && false) {

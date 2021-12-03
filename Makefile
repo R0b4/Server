@@ -21,6 +21,11 @@ CPPCOMP = g++
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CPPCOMP) $(OBJS) -o $@ $(LDFLAGS)
 
+# assembly
+$(BUILD_DIR)/%.s.o: %.s
+	$(MKDIR_P) $(dir $@)
+	$(AS) $(ASFLAGS) -c $< -o $@
+
 # c source
 $(BUILD_DIR)/%.c.o: %.c
 	$(MKDIR_P) $(dir $@)
