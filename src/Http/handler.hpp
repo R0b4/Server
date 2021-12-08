@@ -15,6 +15,8 @@ https://en.wikipedia.org/wiki/List_of_HTTP_header_fields
 */
 
 namespace HttpHandler {
+    extern size_t http_buffer_size;
+    extern size_t http_realloc_threshold;
 
     struct HttpData {
         HttpRequest request;
@@ -26,7 +28,7 @@ namespace HttpHandler {
 
         std::queue<HttpResponse> pending_responses;
 
-        inline HttpData() : written(0), parsed(0) {}
+        inline HttpData() : parsed(0), written(0) {}
     };
 
     void init(ConnectionSet &all, ConnectionHandler &self);
@@ -48,7 +50,6 @@ namespace HttpHandler {
         for (;;) {
             string_pos to_parse(data.parsed, data.written - data.parsed);
             ssize_t parsed = 0;
-            int klklkl = 1;
 
             if (request.progress == none) {
                 if ((parsed = parse_top(data.buffer, to_parse, request)) == -1) return;

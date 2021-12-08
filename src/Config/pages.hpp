@@ -40,4 +40,6 @@ int create_dir(const char *path, mode_t mask);
 string_view get_extension(string_view path);
 void create_file(const char *path, string_view content);
 
+void gzip_init(options &opt, const char *root);
+
 #endif

@@ -1,0 +1,196 @@
+In file included from [01m[Ksrc/Http/handler.hpp:8[m[K,
+                 from [01m[Ksrc/app.cpp:3[m[K:
+[01m[Ksrc/Http/response.hpp:[m[K In constructor ‘[01m[KHttpResponse::HttpResponse()[m[K’:
+[01m[Ksrc/Http/response.hpp:64:10:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpResponse::send_file[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   64 |     bool [01;35m[Ksend_file[m[K;
+      |          [01;35m[K^~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:51:10:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kbool HttpResponse::not_sent_headers[m[K’ [[01;35m[K-Wreorder[m[K]
+   51 |     bool [01;35m[Knot_sent_headers[m[K;
+      |          [01;35m[K^~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:82:12:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   82 |     inline [01;35m[KHttpResponse[m[K() : send_file(false), not_sent_headers(true), id(rand()) {}
+      |            [01;35m[K^~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:51:10:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpResponse::not_sent_headers[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   51 |     bool [01;35m[Knot_sent_headers[m[K;
+      |          [01;35m[K^~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:50:9:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kint HttpResponse::id[m[K’ [[01;35m[K-Wreorder[m[K]
+   50 |     int [01;35m[Kid[m[K;
+      |         [01;35m[K^~[m[K
+[01m[Ksrc/Http/response.hpp:82:12:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   82 |     inline [01;35m[KHttpResponse[m[K() : send_file(false), not_sent_headers(true), id(rand()) {}
+      |            [01;35m[K^~~~~~~~~~~~[m[K
+In file included from [01m[Ksrc/app.cpp:3[m[K:
+[01m[Ksrc/Http/handler.hpp:[m[K In constructor ‘[01m[KHttpHandler::HttpData::HttpData()[m[K’:
+[01m[Ksrc/Http/handler.hpp:27:16:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpHandler::HttpData::written[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   27 |         size_t [01;35m[Kwritten[m[K;
+      |                [01;35m[K^~~~~~~[m[K
+[01m[Ksrc/Http/handler.hpp:26:16:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Ksize_t HttpHandler::HttpData::parsed[m[K’ [[01;35m[K-Wreorder[m[K]
+   26 |         size_t [01;35m[Kparsed[m[K;
+      |                [01;35m[K^~~~~~[m[K
+[01m[Ksrc/Http/handler.hpp:31:16:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   31 |         inline [01;35m[KHttpData[m[K() : written(0), parsed(0) {}
+      |                [01;35m[K^~~~~~~~[m[K
+[01m[Ksrc/app.cpp:[m[K In function ‘[01m[Kint init_dir(const char*)[m[K’:
+[01m[Ksrc/app.cpp:65:11:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kdebug_path[m[K’ [[01;35m[K-Wunused-variable[m[K]
+   65 |     char *[01;35m[Kdebug_path[m[K = opt_path;
+      |           [01;35m[K^~~~~~~~~~[m[K
+[01m[Ksrc/app.cpp:[m[K In function ‘[01m[Kvoid run_server()[m[K’:
+[01m[Ksrc/app.cpp:97:21:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kssl_sock_funcs[m[K’ [[01;35m[K-Wunused-variable[m[K]
+   97 |     SocketFunctions [01;35m[Kssl_sock_funcs[m[K;
+      |                     [01;35m[K^~~~~~~~~~~~~~[m[K
+[01m[Ksrc/app.cpp:[m[K In function ‘[01m[Kint main(int, char**)[m[K’:
+[01m[Ksrc/app.cpp:197:9:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Ka[m[K’ [[01;35m[K-Wunused-variable[m[K]
+  197 |     int [01;35m[Ka[m[K = 0;
+      |         [01;35m[K^[m[K
+In file included from [01m[Ksrc/app.cpp:3[m[K:
+src/Http/handler.hpp: In instantiation of ‘[01m[Kvoid HttpHandler::on_receive(ConnectionHandler&, size_t) [with void (* get_response)(HttpResponse&, const HttpHandler::HttpData&, const HttpRequest&, const ConnectionHandler*) = HandleRequest; size_t = long unsigned int][m[K’:
+[01m[Ksrc/Http/handler.hpp:102:26:[m[K   required from ‘[01m[KConnectionFunctions HttpHandler::get() [with void (* get_response)(HttpResponse&, const HttpHandler::HttpData&, const HttpRequest&, const ConnectionHandler*) = HandleRequest][m[K’
+[01m[Ksrc/app.cpp:89:64:[m[K   required from here
+[01m[Ksrc/Http/handler.hpp:53:17:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kklklkl[m[K’ [[01;35m[K-Wunused-variable[m[K]
+   53 |             int [01;35m[Kklklkl[m[K = 1;
+      |                 [01;35m[K^~~~~~[m[K
+[01m[Ksrc/Config/pages.cpp:[m[K In function ‘[01m[Kbool get_files(const char*, std::vector<char*>&)[m[K’:
+[01m[Ksrc/Config/pages.cpp:39:17:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Kpathstr[m[K’ [[01;35m[K-Wunused-variable[m[K]
+   39 |     const char *[01;35m[Kpathstr[m[K = path;
+      |                 [01;35m[K^~~~~~~[m[K
+[01m[Ksrc/Config/options.cpp:[m[K In member function ‘[01m[Kint options::read_options(FILE*)[m[K’:
+[01m[Ksrc/Config/options.cpp:15:22:[m[K [01;35m[Kwarning: [m[Kformat ‘[01m[K%hhi[m[K’ expects argument of type ‘[01m[Ksigned char*[m[K’, but argument 3 has type ‘[01m[Kbool*[m[K’ [[01;35m[K-Wformat=[m[K]
+   15 |     fscanf(file, "[01;35m[K%hhi[m[K\n", [32m[K&use_ssl[m[K);
+      |                   [01;35m[K~~~^[m[K     [32m[K~~~~~~~~[m[K
+      |                      [01;35m[K|[m[K     [32m[K|[m[K
+      |                      [01;35m[K|[m[K     [32m[Kbool*[m[K
+      |                      [01;35m[Ksigned char*[m[K
+[01m[Ksrc/utils.cpp:[m[K In member function ‘[01m[Kbool string_view::get_num(size_t&)[m[K’:
+[01m[Ksrc/utils.cpp:20:18:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Ksize_t[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+   20 |     for (; [01;35m[Klower < size[m[K && lower > -1; lower++) if (isdigit(str[lower])) break;
+      |            [01;35m[K~~~~~~^~~~~~[m[K
+[01m[Ksrc/utils.cpp:21:15:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kint[m[K’ and ‘[01m[Ksize_t[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+   21 |     if ([01;35m[Klower == size[m[K) return false;
+      |         [01;35m[K~~~~~~^~~~~~~[m[K
+In file included from [01m[Ksrc/Http/response.cpp:1[m[K:
+[01m[Ksrc/Http/response.hpp:[m[K In constructor ‘[01m[KHttpResponse::HttpResponse()[m[K’:
+[01m[Ksrc/Http/response.hpp:64:10:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpResponse::send_file[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   64 |     bool [01;35m[Ksend_file[m[K;
+      |          [01;35m[K^~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:51:10:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kbool HttpResponse::not_sent_headers[m[K’ [[01;35m[K-Wreorder[m[K]
+   51 |     bool [01;35m[Knot_sent_headers[m[K;
+      |          [01;35m[K^~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:82:12:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   82 |     inline [01;35m[KHttpResponse[m[K() : send_file(false), not_sent_headers(true), id(rand()) {}
+      |            [01;35m[K^~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:51:10:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpResponse::not_sent_headers[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   51 |     bool [01;35m[Knot_sent_headers[m[K;
+      |          [01;35m[K^~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:50:9:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kint HttpResponse::id[m[K’ [[01;35m[K-Wreorder[m[K]
+   50 |     int [01;35m[Kid[m[K;
+      |         [01;35m[K^~[m[K
+[01m[Ksrc/Http/response.hpp:82:12:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   82 |     inline [01;35m[KHttpResponse[m[K() : send_file(false), not_sent_headers(true), id(rand()) {}
+      |            [01;35m[K^~~~~~~~~~~~[m[K
+In file included from [01m[Ksrc/Http/handler.hpp:8[m[K,
+                 from [01m[Ksrc/Http/handler.cpp:1[m[K:
+[01m[Ksrc/Http/response.hpp:[m[K In constructor ‘[01m[KHttpResponse::HttpResponse()[m[K’:
+[01m[Ksrc/Http/response.hpp:64:10:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpResponse::send_file[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   64 |     bool [01;35m[Ksend_file[m[K;
+      |          [01;35m[K^~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:51:10:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kbool HttpResponse::not_sent_headers[m[K’ [[01;35m[K-Wreorder[m[K]
+   51 |     bool [01;35m[Knot_sent_headers[m[K;
+      |          [01;35m[K^~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:82:12:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   82 |     inline [01;35m[KHttpResponse[m[K() : send_file(false), not_sent_headers(true), id(rand()) {}
+      |            [01;35m[K^~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:51:10:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpResponse::not_sent_headers[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   51 |     bool [01;35m[Knot_sent_headers[m[K;
+      |          [01;35m[K^~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/Http/response.hpp:50:9:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kint HttpResponse::id[m[K’ [[01;35m[K-Wreorder[m[K]
+   50 |     int [01;35m[Kid[m[K;
+      |         [01;35m[K^~[m[K
+[01m[Ksrc/Http/response.hpp:82:12:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   82 |     inline [01;35m[KHttpResponse[m[K() : send_file(false), not_sent_headers(true), id(rand()) {}
+      |            [01;35m[K^~~~~~~~~~~~[m[K
+In file included from [01m[Ksrc/Http/handler.cpp:1[m[K:
+[01m[Ksrc/Http/handler.hpp:[m[K In constructor ‘[01m[KHttpHandler::HttpData::HttpData()[m[K’:
+[01m[Ksrc/Http/handler.hpp:27:16:[m[K [01;35m[Kwarning: [m[K‘[01m[KHttpHandler::HttpData::written[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   27 |         size_t [01;35m[Kwritten[m[K;
+      |                [01;35m[K^~~~~~~[m[K
+[01m[Ksrc/Http/handler.hpp:26:16:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Ksize_t HttpHandler::HttpData::parsed[m[K’ [[01;35m[K-Wreorder[m[K]
+   26 |         size_t [01;35m[Kparsed[m[K;
+      |                [01;35m[K^~~~~~[m[K
+[01m[Ksrc/Http/handler.hpp:31:16:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   31 |         inline [01;35m[KHttpData[m[K() : written(0), parsed(0) {}
+      |                [01;35m[K^~~~~~~~[m[K
+In file included from [01m[Ksrc/Net/core.cpp:1[m[K:
+[01m[Ksrc/Net/core.hpp:[m[K In constructor ‘[01m[KConnection::Connection(const SocketFunctions*)[m[K’:
+[01m[Ksrc/Net/core.hpp:81:14:[m[K [01;35m[Kwarning: [m[K‘[01m[KConnection::setsending[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   81 |         bool [01;35m[Ksetsending[m[K;
+      |              [01;35m[K^~~~~~~~~~[m[K
+[01m[Ksrc/Net/core.hpp:78:16:[m[K [01;35m[Kwarning: [m[K  ‘[01m[KSocket Connection::socket[m[K’ [[01;35m[K-Wreorder[m[K]
+   78 |         Socket [01;35m[Ksocket[m[K;
+      |                [01;35m[K^~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:12:8:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   12 | inline [01;35m[KConnection[m[K::Connection(const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {
+      |        [01;35m[K^~~~~~~~~~[m[K
+In file included from [01m[Ksrc/Net/core.cpp:1[m[K:
+[01m[Ksrc/Net/core.hpp:84:16:[m[K [01;35m[Kwarning: [m[K‘[01m[KConnection::progress[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   84 |         size_t [01;35m[Kprogress[m[K;
+      |                [01;35m[K^~~~~~~~[m[K
+[01m[Ksrc/Net/core.hpp:83:14:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kbool Connection::isclosing[m[K’ [[01;35m[K-Wreorder[m[K]
+   83 |         bool [01;35m[Kisclosing[m[K;
+      |              [01;35m[K^~~~~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:12:8:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   12 | inline [01;35m[KConnection[m[K::Connection(const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {
+      |        [01;35m[K^~~~~~~~~~[m[K
+In file included from [01m[Ksrc/Net/core.cpp:1[m[K:
+[01m[Ksrc/Net/core.hpp:[m[K In constructor ‘[01m[KConnection::Connection(const ConnectionHandler&, const SocketFunctions*)[m[K’:
+[01m[Ksrc/Net/core.hpp:81:14:[m[K [01;35m[Kwarning: [m[K‘[01m[KConnection::setsending[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   81 |         bool [01;35m[Ksetsending[m[K;
+      |              [01;35m[K^~~~~~~~~~[m[K
+[01m[Ksrc/Net/core.hpp:78:16:[m[K [01;35m[Kwarning: [m[K  ‘[01m[KSocket Connection::socket[m[K’ [[01;35m[K-Wreorder[m[K]
+   78 |         Socket [01;35m[Ksocket[m[K;
+      |                [01;35m[K^~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:15:8:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   15 | inline [01;35m[KConnection[m[K::Connection(const ConnectionHandler &other, const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {
+      |        [01;35m[K^~~~~~~~~~[m[K
+In file included from [01m[Ksrc/Net/core.cpp:1[m[K:
+[01m[Ksrc/Net/core.hpp:84:16:[m[K [01;35m[Kwarning: [m[K‘[01m[KConnection::progress[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   84 |         size_t [01;35m[Kprogress[m[K;
+      |                [01;35m[K^~~~~~~~[m[K
+[01m[Ksrc/Net/core.hpp:83:14:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kbool Connection::isclosing[m[K’ [[01;35m[K-Wreorder[m[K]
+   83 |         bool [01;35m[Kisclosing[m[K;
+      |              [01;35m[K^~~~~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:15:8:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   15 | inline [01;35m[KConnection[m[K::Connection(const ConnectionHandler &other, const SocketFunctions *functions) : issending(false), setsending(false), socket(functions), progress(0), isclosing(false) {
+      |        [01;35m[K^~~~~~~~~~[m[K
+In file included from [01m[Ksrc/Net/core.cpp:1[m[K:
+[01m[Ksrc/Net/core.hpp:[m[K In copy constructor ‘[01m[KConnection::Connection(const Connection&)[m[K’:
+[01m[Ksrc/Net/core.hpp:81:14:[m[K [01;35m[Kwarning: [m[K‘[01m[KConnection::setsending[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   81 |         bool [01;35m[Ksetsending[m[K;
+      |              [01;35m[K^~~~~~~~~~[m[K
+[01m[Ksrc/Net/core.hpp:78:16:[m[K [01;35m[Kwarning: [m[K  ‘[01m[KSocket Connection::socket[m[K’ [[01;35m[K-Wreorder[m[K]
+   78 |         Socket [01;35m[Ksocket[m[K;
+      |                [01;35m[K^~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:20:8:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   20 | inline [01;35m[KConnection[m[K::Connection(const Connection &other) : issending(false), setsending(false), socket(other.socket.functions), progress(0), isclosing(false) {
+      |        [01;35m[K^~~~~~~~~~[m[K
+In file included from [01m[Ksrc/Net/core.cpp:1[m[K:
+[01m[Ksrc/Net/core.hpp:84:16:[m[K [01;35m[Kwarning: [m[K‘[01m[KConnection::progress[m[K’ will be initialized after [[01;35m[K-Wreorder[m[K]
+   84 |         size_t [01;35m[Kprogress[m[K;
+      |                [01;35m[K^~~~~~~~[m[K
+[01m[Ksrc/Net/core.hpp:83:14:[m[K [01;35m[Kwarning: [m[K  ‘[01m[Kbool Connection::isclosing[m[K’ [[01;35m[K-Wreorder[m[K]
+   83 |         bool [01;35m[Kisclosing[m[K;
+      |              [01;35m[K^~~~~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:20:8:[m[K [01;35m[Kwarning: [m[K  when initialized here [[01;35m[K-Wreorder[m[K]
+   20 | inline [01;35m[KConnection[m[K::Connection(const Connection &other) : issending(false), setsending(false), socket(other.socket.functions), progress(0), isclosing(false) {
+      |        [01;35m[K^~~~~~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:[m[K In member function ‘[01m[Kbool Connection::run_pending_actions()[m[K’:
+[01m[Ksrc/Net/core.cpp:62:14:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kssize_t[m[K’ {aka ‘[01m[Klong int[m[K’} and ‘[01m[Ksize_t[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} [[01;35m[K-Wsign-compare[m[K]
+   62 |     if ([01;35m[Ksent == front.size[m[K) {
+      |         [01;35m[K~~~~~^~~~~~~~~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:[m[K In member function ‘[01m[Ksock_status ConnectionSet::start_listener(const char*, int, ConnectionFunctions*, SocketFunctions*)[m[K’:
+[01m[Ksrc/Net/core.cpp:102:28:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kstd::unordered_map<int, Connection*>::size_type[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} and ‘[01m[Kint[m[K’ [[01;35m[K-Wsign-compare[m[K]
+  102 |     if ([01;35m[Kconnections.size() == max_connections[m[K) return exceeded_max_connections;
+      |         [01;35m[K~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~[m[K
+[01m[Ksrc/Net/core.cpp:[m[K In member function ‘[01m[Ksock_status ConnectionSet::handle()[m[K’:
+[01m[Ksrc/Net/core.cpp:151:36:[m[K [01;35m[Kwarning: [m[Kcomparison of integer expressions of different signedness: ‘[01m[Kstd::unordered_map<int, Connection*>::size_type[m[K’ {aka ‘[01m[Klong unsigned int[m[K’} and ‘[01m[Kint[m[K’ [[01;35m[K-Wsign-compare[m[K]
+  151 |             if ([01;35m[Kconnections.size() == max_connections[m[K) continue;
+      |                 [01;35m[K~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~[m[K

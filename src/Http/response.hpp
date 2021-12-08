@@ -29,11 +29,24 @@ struct HttpResponseHeader {
 
         return HttpResponseHeader(header_to_str[hcontentlength], string_view(buffer, digits));
     }
+
+    static inline HttpResponseHeader make_content_type(string_view mime, string_view charset, char *&buffer) {
+        string_view const_str("; charset=");
+        size_t len = mime.size + const_str.size + charset.size;
+
+        buffer = (char *)malloc(len);
+        {
+            char *t = mime.cpy(buffer);
+            t = const_str.cpy(t);
+            t = charset.cpy(t);
+        }
+
+        return HttpResponseHeader(hcontenttype, string_view(buffer, len));
+    }
 };
 
 struct HttpResponse {
 private:
-    int id;
     bool not_sent_headers;
     char *buffer;
     size_t buff_size;
@@ -65,7 +78,7 @@ public:
 
     std::vector<void *> to_free;
 
-    inline HttpResponse() : send_file(false), not_sent_headers(true), id(rand()) {}
+    inline HttpResponse() : not_sent_headers(true), send_file(false) {}
 
     template<typename T>
     inline T *add_to_free(T *str) {

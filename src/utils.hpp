@@ -47,7 +47,6 @@ struct string_view {
         return memcmp(str, other.str, size);
     }
     inline string_view operator+(size_t n) {
-        assert(size > n);
         return string_view(str + n, size - n);
     }
     inline string_view &operator+=(size_t n) {

@@ -4,16 +4,17 @@
 #define HTTP_REALLOC_THESHOLD 500
 
 namespace HttpHandler {
+    size_t http_buffer_size;
+    size_t http_realloc_threshold;
+
     void init(ConnectionSet &all, ConnectionHandler &self) {
         HttpData *data = new HttpData;
-        data->buffer = (char *)malloc(HTTP_BUFFER_SIZE);
-        data->size = HTTP_BUFFER_SIZE;
-        //data->pending_responses.init();
+        data->buffer = (char *)malloc(http_buffer_size);
+        data->size = http_buffer_size;
         self.data = data;
     }
 
     void reallocate(HttpData &data){
-        //data.buffer = (char *)realloc(data.buffer, (data.size *= 2));
         void *newbuffer = malloc(data.size * 2);
         memcpy(newbuffer, data.buffer, data.size);
         free(data.buffer);
@@ -25,7 +26,7 @@ namespace HttpHandler {
         HttpData &data = self.get_data<HttpData>();
 
         size_t space = data.size - data.written;
-        if (space < HTTP_REALLOC_THESHOLD) {
+        if (space < http_realloc_threshold) {
             reallocate(data);
             space = data.size - data.written;
         }
@@ -115,7 +116,6 @@ namespace HttpHandler {
             data.pending_responses.pop();
         }
 
-        //data.pending_responses.erase();
         delete &data;
     }
 }

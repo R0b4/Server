@@ -74,14 +74,14 @@ struct ConnectionHandler {
 };
 
 struct Connection {
-	ConnectionHandler handler;
-	Socket socket;
-
 	bool issending;
 	bool setsending;
 
-	bool isclosing;
+	ConnectionHandler handler;
+	Socket socket;
+
 	size_t progress;
+	bool isclosing;
 	std::queue<string_view> pending;
 
 	clock_t on_last_event;

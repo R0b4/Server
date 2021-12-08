@@ -45,4 +45,6 @@ extern std::map<const httpversion, const string_view> httpversion_to_str;
 
 extern std::map<string_view, string_view, cmp_str> ext_to_mime;
 
+string_view get_mime(string_view ext);
+
 #endif

@@ -2,6 +2,7 @@
 #define INCLUDE_CONFIG_PAGES
 
 #include "options.hpp"
+#include "../compression/compress.hpp"
 
 #include <dirent.h>
 #include <stdio.h>
@@ -36,7 +37,6 @@ const char *gzip_extension = ".gzip";
 //source: https://codeforwin.org/2018/03/c-program-to-list-all-files-in-a-directory-recursively.html
 bool get_files(const char *base_path, std::vector<char *> &files) {
     char path[PATH_MAX];
-    const char *pathstr = path;
     struct dirent *dp;
     DIR *dir = opendir(base_path);
 
@@ -81,6 +81,11 @@ void pages_init(options opt, const char *root) {
     strcpy(path_404page, root);
     strcat(path_404page, rel_path_404page);
 
+    std::set<string_view, cmp_str> gzip_path_set;
+    for (char *s : opt.gzip_paths) {
+        gzip_path_set.insert(string_view(s));
+    }
+
     for (char *str : static_pages) {
         page_t p;
         p.filepath = str;
@@ -93,14 +98,14 @@ void pages_init(options opt, const char *root) {
 
         string_view key(path);
 
-        if (opt.gzip_paths.find(key) != opt.gzip_paths.end()) {
+        if (gzip_path_set.find(key) != gzip_path_set.end()) {
             const size_t gzip_ext_len = 5 * sizeof(char);
 
             p.gzipped = true;
             char *gzip_str = (char *)malloc(const_gzip_path_len + strlen(path) + gzip_ext_len + sizeof(char));
             strcpy(gzip_str, gzip_path);
-            strcpy(gzip_str, path);
-            strcpy(gzip_str, gzip_extension);
+            strcat(gzip_str, path);
+            strcat(gzip_str, gzip_extension);
 
             p.filepath = gzip_str;
 
@@ -118,6 +123,33 @@ void pages_init(options opt, const char *root) {
         if (it == pages.end()) continue;
 
         pages[r.alias] = it->second;
+    }
+}
+
+void gzip_init(options &opt, const char *root) {
+    char pages[PATH_MAX];
+    strcpy(pages, root);
+    strcat(pages, static_pages_dir);
+
+    char gzip_path[PATH_MAX];
+    strcpy(gzip_path, root);
+    strcat(gzip_path, gzip_pages_dir);
+
+    char *rel_pages = pages + strlen(pages);
+    char *rel_gzip = gzip_path + strlen(gzip_path);
+
+    for (char *p : opt.gzip_paths) {
+        strcpy(rel_pages, p);
+        strcpy(rel_gzip, p);
+        strcat(rel_gzip, gzip_extension);
+
+        FILE *page = fopen(pages, "rb");
+        if (page == nullptr) continue;
+
+        FILE *gz_page = fopen(gzip_path, "wb");
+        if (gzip_path == nullptr) continue;
+
+        gzip_compress(page, gz_page, Z_BEST_COMPRESSION);
     }
 }
 

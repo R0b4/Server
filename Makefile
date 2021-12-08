@@ -12,11 +12,11 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -fdiagnostics-color=always -g -Iopenssl/openssl-*/include -Lopenssl/openssl-*
-LDFLAGS ?= -g -lssl -lcrypto -lz
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -Wall -g -O2 -fdiagnostics-color=always -Iopenssl/openssl-*/include -Lopenssl/openssl-* -pipe
+LDFLAGS ?= -lssl -lcrypto -lz -pipe -g -O2 -Wall
 
-CCOMP = gcc
-CPPCOMP = g++
+CCOMP ?= gcc
+CPPCOMP ?= g++
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CPPCOMP) $(OBJS) -o $@ $(LDFLAGS)

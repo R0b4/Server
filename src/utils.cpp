@@ -16,8 +16,8 @@ char *string_view::make_c_str() {
 }
 
 bool string_view::get_num(size_t &num) {
-    int lower = 0;
-    for (; lower < size && lower > -1; lower++) if (isdigit(str[lower])) break;
+    size_t lower = 0;
+    for (; lower < size; lower++) if (isdigit(str[lower])) break;
     if (lower == size) return false;
 
     int max = lower;
@@ -26,7 +26,7 @@ bool string_view::get_num(size_t &num) {
 
     num = 0;
     size_t base = 1;
-    for (int i = max; i >= lower; i--, base *= 10) {
+    for (size_t i = max; i >= lower; i--, base *= 10) {
         num += base * (str[i] - '0');
     }
 

@@ -28,7 +28,7 @@ struct HttpRequest {
 
     progress_t progress;
 
-    inline HttpRequest() : progress(none), content_length(0) {}
+    inline HttpRequest() : content_length(0), progress(none) {}
 };
 
 #endif

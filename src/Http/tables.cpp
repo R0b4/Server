@@ -127,3 +127,9 @@ std::map<string_view, string_view, cmp_str> ext_to_mime {
     {string_view(".zip"), string_view("application/zip")},
     {string_view(".7z"), string_view("application/x-7z-compresse")},
 };
+
+string_view get_mime(string_view ext) {
+    auto it = ext_to_mime.find(ext);
+    if (it == ext_to_mime.end()) return string_view("text/plain");
+    return it->second;
+}

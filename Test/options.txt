@@ -3,4 +3,11 @@
 1234
 100
 0
-0 0
+443
+100
+2 1
+/
+/index.html
+/favicon.ico
+/icon.png
+/compressed.txt

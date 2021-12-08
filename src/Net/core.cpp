@@ -59,7 +59,7 @@ bool Connection::run_pending_actions(){
         return !socket.isblocked();
     }
     
-    if (sent == front.size) {
+    if ((size_t)sent == front.size) {
         progress = 0;
         pending.pop();
     } else {
@@ -99,7 +99,7 @@ void ConnectionSet::close_connection(Connection *conn) {
 }
 
 sock_status ConnectionSet::start_listener(const char *port, int max_backlog, ConnectionFunctions *handler, SocketFunctions *socket) {
-    if (connections.size() == max_connections) return exceeded_max_connections;
+    if (connections.size() == (size_t)max_connections) return exceeded_max_connections;
 
     Connection *c = new Connection(ConnectionHandler(handler), socket);
     sock_status status;
@@ -148,7 +148,7 @@ sock_status ConnectionSet::handle() {
         conn_i->set_timeout();
 
         if (conn_i->socket.is_listening()) {
-            if (connections.size() == max_connections) continue;
+            if (connections.size() == (size_t)max_connections) continue;
 
             Connection *new_conn = new Connection(*conn_i);
             if ((conn_i->socket.accept_new(&new_conn->socket))) {

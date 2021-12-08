@@ -9,6 +9,24 @@
 #include <limits.h>
 #include <arpa/inet.h>
 
+template<size_t MAX>
+inline char *read_str(FILE *file) {
+    char buffer[MAX];
+    fgets(buffer, MAX, file);
+
+    size_t len = strlen(buffer);
+    if (buffer[len - 1] == '\n') {
+        len--;
+        buffer[len] = '\0';
+    }
+
+    char *str = (char *)malloc(len + 1);
+    strcpy(str, buffer);
+    return str;
+}
+
+char *create_mallocd_str(const char *str);
+
 struct options {
     struct route {
         char *alias;
@@ -16,8 +34,7 @@ struct options {
     };
 
     std::vector<route> routes;
-    std::set<string_view, cmp_str> gzip_paths;
-    std::vector<char *> gzip_allocs;
+    std::vector<char *> gzip_paths;
 
     size_t send_chunk_size;
     size_t http_begin_buffer_size;

@@ -1,22 +1,6 @@
 #include "options.hpp"
 
-template<size_t MAX>
-static char *read_str(FILE *file) {
-    char buffer[MAX];
-    fgets(buffer, MAX, file);
-
-    size_t len = strlen(buffer);
-    if (buffer[len - 1] == '\n') {
-        len--;
-        buffer[len] = '\0';
-    }
-
-    char *str = (char *)malloc(len + 1);
-    strcpy(str, buffer);
-    return str;
-}
-
-static char *create_mallocd_str(const char *str) {
+char *create_mallocd_str(const char *str) {
     char *s = (char *)malloc(strlen(str) + 1);
     strcpy(s, str);
     return s;
@@ -28,11 +12,12 @@ int options::read_options(FILE *file) {
 
     port = read_str<10>(file);
     fscanf(file, "%i\n", &backlog);
-    fscanf(file, "%hhi\n", &use_ssl);
-    if (use_ssl) {
-        ssl_port = read_str<10>(file);
-        fscanf(file, "%i\n", &ssl_backlog);
-    }
+    char sslc;
+    fscanf(file, "%hhi\n", &sslc);
+    use_ssl = sslc;
+    
+    ssl_port = read_str<10>(file);
+    fscanf(file, "%i\n", &ssl_backlog);
 
     size_t routes_size;
     size_t gzip_size;
@@ -47,8 +32,8 @@ int options::read_options(FILE *file) {
 
     for (size_t i = 0; i < gzip_size; i++) {
         char *p = read_str<PATH_MAX>(file);
-        gzip_allocs.push_back(p);
-        gzip_paths.insert(string_view(p));
+        //printf("a %s\n", p);
+        gzip_paths.push_back(p);
     }
 
     return 0;
@@ -59,10 +44,9 @@ int options::write_options(FILE *file) const {
     fprintf(file, "%i\n", maxconnections);
 
     fprintf(file, "%s\n%i\n", port, backlog);
+
     fprintf(file, "%hhi\n", use_ssl);
-    if (use_ssl) {
-        fprintf(file, "%s\n%i\n", ssl_port, ssl_backlog);
-    }
+    fprintf(file, "%s\n%i\n", ssl_port, ssl_backlog);
 
     fprintf(file, "%lu %lu\n", routes.size(), gzip_paths.size());
 
@@ -71,8 +55,8 @@ int options::write_options(FILE *file) const {
         fprintf(file, "%s\n", r.path);
     }
 
-    for (string_view s : gzip_paths) {
-        fprintf(file, "%s\n", s.str);
+    for (char *s : gzip_paths) {
+        fprintf(file, "%s\n", s);
     }
 
     fflush(file);
@@ -88,18 +72,21 @@ void options::create_default_options() {
 
     port = create_mallocd_str("80");
     use_ssl = false;
+
+    ssl_backlog = 100;
+    ssl_port = create_mallocd_str("443");
 }
 
 void options::free_options() {
     free(port);
-    if (use_ssl) free(ssl_port);
+    free(ssl_port);
 
     for (route r : routes) {
         free(r.alias);
         free(r.path);
     }
 
-    for (char *p : gzip_allocs) {
+    for (char *p : gzip_paths) {
         free(p);
     }
 

@@ -12,6 +12,15 @@
 options server_options;
 const char *root_folder;
 
+void make_404_response(HttpResponse &res) {
+    char *buff;
+    res.add_header(HttpResponseHeader::make_content_type("text/html", "charset=UTF-8", buff));
+    res.add_to_free(buff);
+
+    res.status = string_view("404 Not Found");
+    res.set_send_file(path_404page, server_options.send_chunk_size, true);
+}
+
 void HandleRequest(HttpResponse &response, const HttpHandler::HttpData &data, const HttpRequest &request, const ConnectionHandler *self) {
     response.version = httpversion_to_str[str_to_httpversion[string_view(request.version, data.buffer)]];
 
@@ -20,16 +29,20 @@ void HandleRequest(HttpResponse &response, const HttpHandler::HttpData &data, co
 
     auto it = pages.find(path);
     if (it == pages.end()) {
-        response.add_header(HttpResponseHeader(hcontenttype, "text/html"));
-        response.status = string_view("404 Not Found");
-        response.set_send_file(path_404page, server_options.send_chunk_size, true);
+        make_404_response(response);
     } else {
         page_t page = it->second;
+        if (!response.set_send_file(page.filepath, server_options.send_chunk_size, true)) {
+            make_404_response(response);
+            return;
+        }
+
         response.status = string_view("202 OK");
 
-        response.add_header(HttpResponseHeader(hcontenttype, ext_to_mime[get_extension(path)]));
-
-        response.set_send_file(page.filepath, server_options.send_chunk_size, true);
+        char *buff;
+        string_view mime = get_mime(get_extension(path));
+        response.add_header(HttpResponseHeader::make_content_type(mime, "charset=UTF-8", buff));
+        response.add_to_free(buff);
 
         if (page.gzipped) {
             response.add_header(HttpResponseHeader(hcontentenc, "gzip"));
@@ -38,18 +51,18 @@ void HandleRequest(HttpResponse &response, const HttpHandler::HttpData &data, co
 }
 
 enum command_t {
-    crun, cconfig, ccreate
+    crun, cconfig, ccreate, cgzip
 };
 
 std::map<string_view, command_t, cmp_str_case_insensitive> commands = {
     {string_view("run"), crun}, 
     {string_view("config"), cconfig}, 
-    {string_view("create"), ccreate}
+    {string_view("create"), ccreate},
+    {"gzip", cgzip}
 };
 
 int init_dir(const char *root) {
     char opt_path[PATH_MAX];
-    char *debug_path = opt_path;
     strcpy(opt_path, root);
     strcat(opt_path, rel_opt_path);
 
@@ -65,6 +78,7 @@ int init_dir(const char *root) {
         fclose(fopt);
     }
 
+
     pages_init(server_options, root);
     return 0;
 }
@@ -76,6 +90,9 @@ void run_server() {
     SocketFunctions sock_funcs = StandardSocket::get();
 
     connections.start_listener(server_options.port, server_options.backlog, &funcs, &sock_funcs);
+
+    HttpHandler::http_buffer_size = server_options.http_begin_buffer_size;
+    HttpHandler::http_realloc_threshold = server_options.http_realloc_threshold;
     
     SocketFunctions ssl_sock_funcs;
     if (server_options.use_ssl) {
@@ -87,7 +104,7 @@ void run_server() {
         strcpy(cert_path, root_folder);
         strcat(cert_path, rel_pkey_path);
 
-        SocketFunctions ssl_sock_funcs = SSLSocket::get(SSLSocket::tls, cert_path, pkey_path);
+        ssl_sock_funcs = SSLSocket::get(SSLSocket::tls, cert_path, pkey_path);
         connections.start_listener(server_options.ssl_port, server_options.backlog, &funcs, &ssl_sock_funcs);
     }
 
@@ -119,7 +136,7 @@ int create_website_dir() {
     strcpy(rel_part, rel_cert_path);
     create_file(path, string_view("#Paste your ssl certificate here"));
 
-    strcpy(rel_part, rel_path_404page);
+    strcpy(rel_part, rel_pkey_path);
     create_file(path, string_view("#Paste your ssl private key here."));
 
     server_options.create_default_options();
@@ -134,8 +151,8 @@ int create_website_dir() {
 }
 
 int main(int argc, char **argv){
-    run_config_helper("", server_options);
     if (argc > 1) {
+        
         auto it = commands.find(string_view(argv[1]));
         if (it == commands.end() && false) {
             goto query_syntax_error;
@@ -145,7 +162,7 @@ int main(int argc, char **argv){
 
         if (c == crun){
             if (argc > 2) {
-                root_folder = "./Test";
+                root_folder = argv[2];
                 if (init_dir(root_folder)) return 1;
 
                 run_server();
@@ -157,22 +174,34 @@ int main(int argc, char **argv){
                 root_folder = argv[2];
                 if (init_dir(root_folder)) return 1;
 
+                char path[PATH_MAX];
+                strcpy(path, root_folder);
+                strcat(path, rel_opt_path);
+
+                run_config_helper(path, server_options);
             } else {
                 goto query_syntax_error;
             }
         } else if (c == ccreate) {
             if (argc > 2) {
-                printf("here\n");
                 root_folder = argv[2];
 
-                printf("here\n");
-                root_folder = argv[2];
+                create_website_dir();
             } else {
+                goto query_syntax_error;
+            }
+        } else if (c == cgzip) {
+            if (argc > 2) {
+                root_folder = argv[2];
+                if (init_dir(root_folder)) return 1;
 
+                gzip_init(server_options, root_folder);
+            } else {
+                goto query_syntax_error;
             }
         }
     }
 
     query_syntax_error:
-    int a = 0;
+    return 0;
 }
