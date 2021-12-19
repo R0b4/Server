@@ -49,6 +49,8 @@ struct options {
     int ssl_backlog;
     char *ssl_port;
 
+    bool use_dynamic_pages;
+
     int read_options(FILE *file);
     int write_options(FILE *file) const;
     void create_default_options();

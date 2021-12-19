@@ -1,6 +1,7 @@
 #source: https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
 TARGET_EXEC ?= main
+TARGET_OBJ ?= obj
 
 BUILD_DIR ?= ./bin
 SRC_DIRS ?= ./src
@@ -18,8 +19,13 @@ LDFLAGS ?= -lssl -lcrypto -lz -pipe -g -O2 -Wall
 CCOMP ?= gcc
 CPPCOMP ?= g++
 
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CPPCOMP) $(OBJS) -o $@ $(LDFLAGS)
+#build executable
+$(BUILD_DIR)/$(TARGET_EXEC): $(BUILD_DIR)/$(TARGET_OBJ)
+	$(CPPCOMP) $(BUILD_DIR)/$(TARGET_OBJ) -o $@ $(LDFLAGS)
+
+#build linkable binary
+$(BUILD_DIR)/$(TARGET_OBJ): $(OBJS)
+	ar -rcs $(BUILD_DIR)/$(TARGET_OBJ) $(OBJS)
 
 # assembly
 $(BUILD_DIR)/%.s.o: %.s

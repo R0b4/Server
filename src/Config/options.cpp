@@ -19,6 +19,10 @@ int options::read_options(FILE *file) {
     ssl_port = read_str<10>(file);
     fscanf(file, "%i\n", &ssl_backlog);
 
+    char dynamic;
+    fscanf(file, "%hhi\n", &dynamic);
+    use_dynamic_pages = dynamic;
+
     size_t routes_size;
     size_t gzip_size;
     fscanf(file, "%lu %lu\n", &routes_size, &gzip_size);
@@ -48,6 +52,8 @@ int options::write_options(FILE *file) const {
     fprintf(file, "%hhi\n", use_ssl);
     fprintf(file, "%s\n%i\n", ssl_port, ssl_backlog);
 
+    fprintf(file, "%hhi\n", use_dynamic_pages);
+
     fprintf(file, "%lu %lu\n", routes.size(), gzip_paths.size());
 
     for (route r : routes) {
@@ -75,6 +81,8 @@ void options::create_default_options() {
 
     ssl_backlog = 100;
     ssl_port = create_mallocd_str("443");
+
+    use_dynamic_pages = false;
 }
 
 void options::free_options() {

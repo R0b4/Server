@@ -4,12 +4,15 @@
 #include "Config/options.hpp"
 #include "Config/pages.hpp"
 #include "Config/helper.hpp"
+#include "dynamic/dynamic.hpp"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 options server_options;
+DynamicPagesHandler dhandler;
+
 const char *root_folder;
 
 void make_404_response(HttpResponse &res) {
@@ -24,8 +27,11 @@ void make_404_response(HttpResponse &res) {
 void HandleRequest(HttpResponse &response, const HttpHandler::HttpData &data, const HttpRequest &request, const ConnectionHandler *self) {
     response.version = httpversion_to_str[str_to_httpversion[string_view(request.version, data.buffer)]];
 
-    string_view body404("<center><h1>404 Not found</h1><p>Could not find this file.");
     string_view path = string_view(request.path, data.buffer);
+
+    if (server_options.use_dynamic_pages) {
+        if (dhandler.resolve(response, data, request, self) == 0) return;
+    }
 
     auto it = pages.find(path);
     if (it == pages.end()) {
@@ -101,8 +107,8 @@ void run_server() {
         strcat(cert_path, rel_cert_path);
         
         char pkey_path[PATH_MAX];
-        strcpy(cert_path, root_folder);
-        strcat(cert_path, rel_pkey_path);
+        strcpy(pkey_path, root_folder);
+        strcat(pkey_path, rel_pkey_path);
 
         ssl_sock_funcs = SSLSocket::get(SSLSocket::tls, cert_path, pkey_path);
         connections.start_listener(server_options.ssl_port, server_options.backlog, &funcs, &ssl_sock_funcs);
