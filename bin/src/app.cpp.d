@@ -1,23 +1,18 @@
-bin/./src/app.cpp.o: src/app.cpp src/Net/core.hpp src/Net/socket.hpp \
- src/Net/sock_types.hpp src/Net/epoll.hpp src/Net/../utils.hpp \
- src/Net/socket.hpp src/Http/handler.hpp src/Http/../Net/core.hpp \
- src/Http/tables.hpp src/Http/../utils.hpp src/Http/request.hpp \
- src/Http/response.hpp src/Config/options.hpp src/Config/../utils.hpp \
- src/Config/pages.hpp src/Config/options.hpp src/Config/helper.hpp
-src/Net/core.hpp:
-src/Net/socket.hpp:
-src/Net/sock_types.hpp:
-src/Net/epoll.hpp:
-src/Net/../utils.hpp:
-src/Net/socket.hpp:
-src/Http/handler.hpp:
-src/Http/../Net/core.hpp:
-src/Http/tables.hpp:
-src/Http/../utils.hpp:
-src/Http/request.hpp:
-src/Http/response.hpp:
-src/Config/options.hpp:
-src/Config/../utils.hpp:
-src/Config/pages.hpp:
-src/Config/options.hpp:
-src/Config/helper.hpp:
+bin/./src/app.cpp.o: src/app.cpp server/net/core.hpp \
+ server/net/socket.hpp server/net/sock_types.hpp server/net/epoll.hpp \
+ server/utils.hpp server/http/handler.hpp server/http/tables.hpp \
+ server/http/request.hpp server/http/response.hpp \
+ server/config/options.hpp server/config/pages.hpp \
+ server/config/helper.hpp
+server/net/core.hpp:
+server/net/socket.hpp:
+server/net/sock_types.hpp:
+server/net/epoll.hpp:
+server/utils.hpp:
+server/http/handler.hpp:
+server/http/tables.hpp:
+server/http/request.hpp:
+server/http/response.hpp:
+server/config/options.hpp:
+server/config/pages.hpp:
+server/config/helper.hpp:

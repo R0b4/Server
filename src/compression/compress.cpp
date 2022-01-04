@@ -1,3 +1,5 @@
+#include <server/compression/compress.hpp>
+
 #include <zlib.h>
 #include <stdio.h>
 #include <assert.h>

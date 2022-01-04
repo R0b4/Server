@@ -1,17 +1,15 @@
-#include "Net/core.hpp"
-#include "Net/socket.hpp"
-#include "Http/handler.hpp"
-#include "Config/options.hpp"
-#include "Config/pages.hpp"
-#include "Config/helper.hpp"
-#include "dynamic/dynamic.hpp"
+#include <server/net/core.hpp>
+#include <server/net/socket.hpp>
+#include <server/http/handler.hpp>
+#include <server/config/options.hpp>
+#include <server/config/pages.hpp>
+#include <server/config/helper.hpp>
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 options server_options;
-DynamicPagesHandler dhandler;
 
 const char *root_folder;
 
@@ -28,10 +26,6 @@ void HandleRequest(HttpResponse &response, const HttpHandler::HttpData &data, co
     response.version = httpversion_to_str[str_to_httpversion[string_view(request.version, data.buffer)]];
 
     string_view path = string_view(request.path, data.buffer);
-
-    if (server_options.use_dynamic_pages) {
-        if (dhandler.resolve(response, data, request, self) == 0) return;
-    }
 
     auto it = pages.find(path);
     if (it == pages.end()) {
