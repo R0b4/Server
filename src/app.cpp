@@ -5,6 +5,8 @@
 #include <server/config/pages.hpp>
 #include <server/config/helper.hpp>
 
+#include <server/dynamic.hpp>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -26,6 +28,8 @@ void HandleRequest(HttpResponse &response, const HttpHandler::HttpData &data, co
     response.version = httpversion_to_str[str_to_httpversion[string_view(request.version, data.buffer)]];
 
     string_view path = string_view(request.path, data.buffer);
+
+    if (!dynamic_handle(response, data, request, self)) return;
 
     auto it = pages.find(path);
     if (it == pages.end()) {
@@ -108,9 +112,16 @@ void run_server() {
         connections.start_listener(server_options.ssl_port, server_options.backlog, &funcs, &ssl_sock_funcs);
     }
 
+    if (dynamic_init(connections)) {
+        return;
+    }
+
     for (;;) { 
         connections.handle();
+        if (dynamic_should_shutdown()) return;
     }
+
+    dynamic_close();
 }
 
 int create_website_dir() {
@@ -150,6 +161,17 @@ int create_website_dir() {
     return 0;
 }
 
+#if 0
+
+int main() {
+    root_folder = "../Test";
+    if (init_dir(root_folder)) return 1;
+
+    printf("here\n");
+    run_server();
+}
+
+#else
 int main(int argc, char **argv){
     if (argc > 1) {
         
@@ -205,3 +227,4 @@ int main(int argc, char **argv){
     query_syntax_error:
     return 0;
 }
+#endif

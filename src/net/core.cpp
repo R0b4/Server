@@ -55,7 +55,6 @@ bool Connection::run_pending_actions(){
     ssize_t sent = socket.write(front.str, front.size);
 
     if (sent == -1) {
-        printf("connection blocked.\n");
         return !socket.isblocked();
     }
     

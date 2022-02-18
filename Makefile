@@ -13,15 +13,18 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -Wall -g -O2 -fdiagnostics-color=always -Iopenssl/openssl-*/include -Lopenssl/openssl-* -pipe -I.
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -Wall -g -O2 -fdiagnostics-color=always -Iopenssl/openssl-*/include -Lopenssl/openssl-* -pipe -Iinclude
 LDFLAGS ?= -lssl -lcrypto -lz -pipe -g -O2 -Wall
 
 CCOMP ?= gcc
 CPPCOMP ?= g++
 
 #build executable
-$(BUILD_DIR)/$(TARGET_EXEC): $(BUILD_DIR)/$(TARGET_OBJ)
-	$(CPPCOMP) $(BUILD_DIR)/$(TARGET_OBJ) -o $@ $(LDFLAGS)
+$(BUILD_DIR)/$(TARGET_EXEC): $(BUILD_DIR)/$(TARGET_OBJ) $(BUILD_DIR)/dynamic
+	$(CPPCOMP) $(BUILD_DIR)/$(TARGET_OBJ) $(BUILD_DIR)/dynamic -o $@ $(LDFLAGS)
+
+$(BUILD_DIR)/dynamic:
+	$(CPPCOMP) $(CPPFLAGS) $(CXXFLAGS) -c dynamic/dynamic.cpp -o $@
 
 #build linkable binary
 $(BUILD_DIR)/$(TARGET_OBJ): $(OBJS)

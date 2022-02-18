@@ -146,7 +146,6 @@ namespace SSLSocket
 	//https://wiki.openssl.org/index.php/Simple_TLS_Server
 
     void construct(Socket *self) {
-		printf("con\n");
         SocketData *data = new SocketData;
         data->isListening = false;
 		data->ssl = nullptr;
@@ -154,13 +153,11 @@ namespace SSLSocket
     }
 
     void deconstruct(Socket *self) {
-		printf("decon\n");
         SocketData &data = self->get_data<SocketData>();
         delete &data;
     }
 
     sock_status bind_new_socket(Socket *self, const char *port) {
-		printf("bind\n");
         SocketData &data = self->get_data<SocketData>();
 		struct addrinfo hints;
 
@@ -206,7 +203,6 @@ namespace SSLSocket
 	}
 
 	sock_status start_listen(Socket *self, int max_backlog) {
-		printf("listen\n");
         SocketData &data = self->get_data<SocketData>();
 		data.isListening = true;
 
@@ -218,42 +214,29 @@ namespace SSLSocket
 	}
 
 	void make_non_blocking(Socket *self) {
-		printf("nonblock\n");
         SocketData &data = self->get_data<SocketData>();
 		fcntl(data.sock_fd, F_SETFL, O_NONBLOCK);
 	}
 
 	sock_status accept_new(Socket *self, Socket *out) {
-		printf("accept\n");
         SocketData &data = self->get_data<SocketData>();
-		printf("accept\n");
         SocketData &out_data = out->get_data<SocketData>();
-
-		printf("accept tcp\n");
 
 		ConstSocketData &const_data = self->get_const_data<ConstSocketData>();
 
-		printf("accept tcp\n");
-
 		out_data.sock_fd = accept(data.sock_fd, &out_data.adress.peer_addr, &out_data.adress.peer_addr_len);
-
-		printf("accept tcp\n");
 
 		out_data.ssl = SSL_new(const_data.ctx);
         out_data.last_ret = SSL_set_fd(out_data.ssl, out_data.sock_fd);
 
 		out_data.last_ret = SSL_accept(out_data.ssl);
-		printf("%i\n", out_data.last_ret);
 		if (out_data.last_ret < 0) return sock_accept_failed;
-
-		printf("ssl accept\n");
 
 		if (out_data.sock_fd == -1) return sock_accept_failed;
 		return sock_ok;
 	}
 
 	ssize_t read(Socket *self, char *buffer, size_t buff_size) {
-		printf("read\n");
         SocketData &data = self->get_data<SocketData>();
 		data.last_ret = SSL_read(data.ssl, buffer, buff_size);
 
@@ -268,13 +251,11 @@ namespace SSLSocket
 	}
 
 	ssize_t write(Socket *self, const char *buffer, size_t buff_size) {
-		printf("write\n");
         SocketData &data = self->get_data<SocketData>();
 		return data.last_ret = SSL_write(data.ssl, buffer, buff_size);
 	}
 
 	void erase(Socket *self){
-		printf("erase\n");
         SocketData &data = self->get_data<SocketData>();
 		close(data.sock_fd);
 		if (data.ssl) {
@@ -284,19 +265,16 @@ namespace SSLSocket
 	}
 
 	inline int get_fd(const Socket *self) {
-		printf("fd\n");
         const SocketData &data = self->get_data<SocketData>();
 		return data.sock_fd;
 	}
 
     const AdressInfo &get_addr_info(const Socket *self) {
-		printf("address info\n");
 		const SocketData &data = self->get_data<SocketData>();
         return data.adress;
 	}
 
 	bool is_listening(const Socket *self) {
-		printf("is listening\n");
 		const SocketData &data = self->get_data<SocketData>();
         return data.isListening;
 	}
@@ -332,7 +310,6 @@ namespace SSLSocket
 	}
 
 	bool isblocked(Socket *self) {
-		printf("blocked func\n");
 		const SocketData &data = self->get_data<SocketData>();
 		
 		int err = SSL_get_error(data.ssl, data.last_ret);
@@ -350,8 +327,6 @@ namespace SSLSocket
 	}
 
     SocketFunctions get(ssl_version version, const char *cert_location, const char *private_key_location){
-		printf("%s\n", cert_location);
-		printf("%s\n", private_key_location);
         SocketFunctions functions;
 
 		ConstSocketData *data = new ConstSocketData;

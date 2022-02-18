@@ -1,8 +1,8 @@
-bin/./src/net/core.cpp.o: src/net/core.cpp server/net/core.hpp \
- server/net/socket.hpp server/net/sock_types.hpp server/net/epoll.hpp \
- server/utils.hpp
-server/net/core.hpp:
-server/net/socket.hpp:
-server/net/sock_types.hpp:
-server/net/epoll.hpp:
-server/utils.hpp:
+bin/./src/net/core.cpp.o: src/net/core.cpp include/server/net/core.hpp \
+ include/server/net/socket.hpp include/server/net/sock_types.hpp \
+ include/server/net/epoll.hpp include/server/utils.hpp
+include/server/net/core.hpp:
+include/server/net/socket.hpp:
+include/server/net/sock_types.hpp:
+include/server/net/epoll.hpp:
+include/server/utils.hpp:

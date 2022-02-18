@@ -1,4 +1,4 @@
-bin/./src/http/tables.cpp.o: src/http/tables.cpp server/http/tables.hpp \
- server/utils.hpp
-server/http/tables.hpp:
-server/utils.hpp:
+bin/./src/http/tables.cpp.o: src/http/tables.cpp \
+ include/server/http/tables.hpp include/server/utils.hpp
+include/server/http/tables.hpp:
+include/server/utils.hpp:
