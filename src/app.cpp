@@ -59,9 +59,9 @@ enum command_t {
 };
 
 std::map<string_view, command_t, cmp_str_case_insensitive> commands = {
-    {string_view("run"), crun}, 
-    {string_view("config"), cconfig}, 
-    {string_view("create"), ccreate},
+    {"run", crun}, 
+    {"config", cconfig}, 
+    {"create", ccreate},
     {"gzip", cgzip}
 };
 
@@ -161,17 +161,6 @@ int create_website_dir() {
     return 0;
 }
 
-#if 0
-
-int main() {
-    root_folder = "../Test";
-    if (init_dir(root_folder)) return 1;
-
-    printf("here\n");
-    run_server();
-}
-
-#else
 int main(int argc, char **argv){
     if (argc > 1) {
         
@@ -227,4 +216,3 @@ int main(int argc, char **argv){
     query_syntax_error:
     return 0;
 }
-#endif
